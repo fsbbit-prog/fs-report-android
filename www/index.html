@@ -1,1 +1,86 @@
-<html><body>Loading FS Report...</body></html>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>FS Report</title>
+<style>
+  *{box-sizing:border-box}
+  body,html{margin:0;padding:0;height:100%;overflow:hidden;font-family:sans-serif}
+  #bar{height:40px;background:#3b0764;display:flex;align-items:center;padding:0 10px;gap:10px;flex-shrink:0}
+  #bar button{background:none;border:none;color:#fff;font-size:18px;padding:4px 8px;cursor:pointer}
+  #bar span{color:#fff;font-size:14px;font-weight:600}
+  #wrap{display:flex;flex-direction:column;height:100%}
+  #frame{width:100%;flex:1;border:none;background:#fff}
+  #settingsForm{position:fixed;inset:0;background:#f5f3fa;display:none;flex-direction:column;
+    align-items:center;justify-content:center;gap:14px;padding:24px;z-index:10}
+  #settingsForm h3{color:#3b0764;margin:0 0 4px 0}
+  #settingsForm p{color:#666;font-size:13px;text-align:center;margin:0 0 8px 0}
+  #settingsForm input{padding:12px;font-size:16px;width:100%;max-width:320px;
+    border:1px solid #ccc;border-radius:8px}
+  #settingsForm button.save{padding:12px 32px;background:#3b0764;color:#fff;border:none;
+    border-radius:8px;font-size:16px;font-weight:600;cursor:pointer}
+  #settingsForm .hint{font-size:11px;color:#999}
+  #errBox{color:#a32d2d;font-size:12px;display:none}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="bar">
+    <button onclick="showSettings()" title="Change server address">⚙</button>
+    <span>FS Report</span>
+  </div>
+  <iframe id="frame"></iframe>
+</div>
+
+<div id="settingsForm">
+  <h3>Server Address</h3>
+  <p>Enter the office server's address (ask your IT admin if unsure)</p>
+  <input id="urlInput" placeholder="192.168.1.204:3001" autocapitalize="off" autocorrect="off">
+  <button class="save" onclick="saveUrl()">Connect</button>
+  <div id="errBox"></div>
+  <div class="hint">You can change this anytime by tapping ⚙ at the top</div>
+</div>
+
+<script>
+function getUrl(){ return localStorage.getItem('fsreport_url') || ''; }
+
+function normalizeUrl(v){
+  v = v.trim();
+  if(!v) return '';
+  if(!/^https?:\/\//i.test(v)) v = 'http://' + v;
+  return v;
+}
+
+function load(){
+  const u = getUrl();
+  if(u){
+    document.getElementById('frame').src = u;
+    document.getElementById('settingsForm').style.display = 'none';
+  } else {
+    showSettings();
+  }
+}
+
+function showSettings(){
+  document.getElementById('urlInput').value = getUrl().replace(/^https?:\/\//i,'');
+  document.getElementById('errBox').style.display = 'none';
+  document.getElementById('settingsForm').style.display = 'flex';
+}
+
+function saveUrl(){
+  const raw = document.getElementById('urlInput').value;
+  const v = normalizeUrl(raw);
+  if(!v){
+    document.getElementById('errBox').textContent = 'Please enter a server address.';
+    document.getElementById('errBox').style.display = 'block';
+    return;
+  }
+  localStorage.setItem('fsreport_url', v);
+  load();
+}
+
+load();
+</script>
+</body>
+</html>
