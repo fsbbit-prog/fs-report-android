@@ -79,6 +79,15 @@ jobs:
           git commit -m "Build files listing [skip ci]" || echo "nothing to commit"
           git push || echo "push failed"
 
+      - name: Commit APK directly to repo (artifact download storage is unreachable from build environment)
+        run: |
+          git config user.email "build@fsreport.local"
+          git config user.name "FS Report Build"
+          cp android/app/build/outputs/apk/debug/app-debug.apk fs-report.apk
+          git add -f fs-report.apk
+          git commit -m "Add built APK [skip ci]"
+          git push
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
