@@ -62,6 +62,17 @@ jobs:
         if: steps.build.outcome == 'failure'
         run: exit 1
 
+      - name: List actual build outputs
+        run: |
+          git config user.email "build@fsreport.local"
+          git config user.name "FS Report Build"
+          find android/app/build -type f -iname "*.apk" > BUILD_FILES.txt 2>&1 || true
+          echo "--- full outputs tree ---" >> BUILD_FILES.txt
+          find android/app/build/outputs -type f >> BUILD_FILES.txt 2>&1 || echo "outputs dir not found" >> BUILD_FILES.txt
+          git add BUILD_FILES.txt
+          git commit -m "Build files listing [skip ci]" || echo "nothing to commit"
+          git push || echo "push failed"
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
