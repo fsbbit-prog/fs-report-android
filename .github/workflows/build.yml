@@ -24,7 +24,23 @@ jobs:
         run: npm install
 
       - name: Sync Capacitor
-        run: npx cap sync android
+        id: sync
+        run: npx cap sync android 2>&1 | tee /tmp/sync_output.txt
+        continue-on-error: true
+
+      - name: Save diagnostic log on failure
+        if: steps.sync.outcome == 'failure'
+        run: |
+          git config user.email "build@fsreport.local"
+          git config user.name "FS Report Build"
+          cp /tmp/sync_output.txt BUILD_ERROR.txt
+          git add BUILD_ERROR.txt
+          git commit -m "Build diagnostic log [skip ci]"
+          git push
+
+      - name: Stop here if sync failed
+        if: steps.sync.outcome == 'failure'
+        run: exit 1
 
       - name: Build debug APK
         working-directory: android
