@@ -43,8 +43,24 @@ jobs:
         run: exit 1
 
       - name: Build debug APK
+        id: build
         working-directory: android
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleDebug 2>&1 | tee /tmp/gradle_output.txt
+        continue-on-error: true
+
+      - name: Save gradle diagnostic log on failure
+        if: steps.build.outcome == 'failure'
+        run: |
+          git config user.email "build@fsreport.local"
+          git config user.name "FS Report Build"
+          tail -c 60000 /tmp/gradle_output.txt > GRADLE_ERROR.txt
+          git add GRADLE_ERROR.txt
+          git commit -m "Gradle diagnostic log [skip ci]"
+          git push
+
+      - name: Stop here if gradle build failed
+        if: steps.build.outcome == 'failure'
+        run: exit 1
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
